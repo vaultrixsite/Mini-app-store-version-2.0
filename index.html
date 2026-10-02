@@ -1,518 +1,825 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Smooth Free Swap Candy Game - Monetized</title>
-<style>
-* {
-box-sizing: border-box;
-user-select: none;
--webkit-user-select: none;
-}
-html, body {
-margin: 0;
-padding: 0;
-width: 100vw;
-height: 100vh;
-background: linear-gradient(135deg, #1f1c2c, #928dab);
-color: #fff;
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-overflow: hidden;
-touch-action: none;
-}
-.game-wrapper {
-display: flex;
-flex-direction: column;
-align-items: center;
-width: 100%;
-max-width: 380px;
-padding: 10px;
-}
-#game-header {
-display: flex;
-justify-content: space-between;
-width: 100%;
-padding: 10px 12px;
-font-size: 0.85rem;
-font-weight: bold;
-background: rgba(0, 0, 0, 0.7);
-border-radius: 10px 10px 0 0;
-border: 2px solid rgba(255, 255, 255, 0.2);
-border-bottom: none;
-}
-.board-container {
-position: relative;
-width: 100%;
-aspect-ratio: 1 / 1;
-background: rgba(0, 0, 0, 0.8);
-border: 2px solid rgba(255, 255, 255, 0.2);
-border-radius: 0 0 10px 10px;
-display: grid;
-grid-template-columns: repeat(8, 1fr);
-grid-template-rows: repeat(8, 1fr);
-gap: 4px;
-padding: 6px;
-box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-}
-#particleCanvas {
-position: fixed;
-top: 0;
-left: 0;
-width: 100vw;
-height: 100vh;
-pointer-events: none;
-z-index: 99;
-}
-.candy {
-background: rgba(255, 255, 255, 0.15);
-border-radius: 8px;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 1.6rem;
-cursor: pointer;
-touch-action: none;
-transition: transform 0.1s, background 0.1s;
-}
-.candy.selected { transform: scale(1.15); background: rgba(255, 255, 255, 0.5); z-index: 10; box-shadow: 0 0 10px #fff; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-.overlay {
-position: absolute;
-top: 0; left: 0; width: 100%; height: 100%;
-background: rgba(15, 12, 41, 0.95);
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-z-index: 200;
-text-align: center;
-padding: 20px;
-border-radius: 10px;
-}
-.overlay h1 { color: #ff007f; font-size: 1.5rem; margin-bottom: 10px; }
-.overlay p { font-size: 0.9rem; margin-bottom: 20px; color: #ddd; }
-.btn {
-background: linear-gradient(45deg, #ff416c, #ff4b2b);
-color: white;
-border: none;
-padding: 10px 25px;
-font-size: 1rem;
-font-weight: bold;
-border-radius: 20px;
-cursor: pointer;
-}
-.hidden { display: none !important; }
+    <title>MiniStore - App Store & Game Portal</title>
 
-.ad-space-top {
-width: 100%;
-max-width: 380px;
-min-height: 50px;
-background: rgba(255, 255, 255, 0.05);
-border: 1px dashed rgba(255, 255, 255, 0.2);
-display: flex;
-align-items: center;
-justify-content: center;
-margin-bottom: 8px;
-border-radius: 8px;
-font-size: 0.75rem;
-color: #aaa;
-}
-.ad-space-native {
-width: 100%;
-max-width: 380px;
-min-height: 80px;
-background: rgba(255, 255, 255, 0.05);
-border: 1px dashed rgba(255, 255, 255, 0.2);
-display: flex;
-align-items: center;
-justify-content: center;
-margin-top: 10px;
-border-radius: 8px;
-font-size: 0.75rem;
-color: #aaa;
-}
-</style>
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden !important;
+            width: 100%;
+            max-width: 100vw;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .dark ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+
+        .header-marquee-box {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            color: #fff;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+            width: 100%;
+        }
+    </style>
 </head>
-<body>
 
-<!-- SOCIAL BAR AD -->
-<script src="https://pl31539155.profitableratecpmnetwork.com/5a/71/23/5a7123ffb8257c55f6710c10884def55.js"></script>
-<canvas id="particleCanvas"></canvas>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-full flex flex-col transition-colors duration-300">
 
-<div class="game-wrapper">
+<header class="sticky top-0 z-40 backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 w-full overflow-hidden">
 
-<!-- TOP BANNER AD -->
-<div class="ad-space-top">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+
+        <!-- Logo -->
+        <div class="flex items-center space-x-2.5 cursor-pointer shrink-0"
+             onclick="switchTab('store')">
+
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+                <i class="fa-solid fa-gamepad text-base sm:text-lg"></i>
+            </div>
+
+            <div class="flex items-center space-x-1.5">
+                <span class="text-lg sm:text-xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
+                    MiniStore
+                </span>
+
+                <span class="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+                    v3.0
+                </span>
+            </div>
+        </div>
+
+        <!-- Desktop Search -->
+        <div id="nav-search-container" class="hidden md:flex flex-1 max-w-md mx-4">
+            <div class="relative w-full">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </span>
+                <input
+                    type="text"
+                    id="searchInput"
+                    oninput="handleSearch(this.value)"
+                    placeholder="Search games or apps..."
+                    class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800/80 border border-transparent dark:border-slate-700/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-900 transition">
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center space-x-2 shrink-0">
+
+            <button
+                onclick="switchTab('store')"
+                id="btn-store"
+                class="px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition flex items-center space-x-1.5 bg-indigo-600 text-white shadow-sm">
+                <i class="fa-solid fa-store"></i>
+                <span class="hidden xs:inline">Store</span>
+            </button>
+
+            <button
+                onclick="switchTab('upload')"
+                id="btn-upload"
+                class="px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span class="hidden xs:inline">Upload</span>
+            </button>
+
+            <button
+                onclick="toggleTheme()"
+                class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                title="Toggle Theme">
+                <i id="theme-icon" class="fa-solid fa-moon text-sm"></i>
+            </button>
+
+        </div>
+    </div>
+
+    <!-- Mobile Search Bar -->
+    <div class="md:hidden px-4 pb-3 pt-1">
+        <div class="relative w-full">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+            </span>
+            <input
+                type="text"
+                id="mobileSearchInput"
+                oninput="handleSearch(this.value)"
+                placeholder="Search games or apps..."
+                class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 rounded-full text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+    </div>
+
+    <!-- Marquee Announcement -->
+    <div class="header-marquee-box">
+        <div class="max-w-7xl mx-auto flex items-center overflow-hidden">
+            <span class="bg-white/20 text-white text-[11px] px-2 py-0.5 rounded mr-3 font-bold uppercase tracking-wider flex-shrink-0">
+                <i class="fa-solid fa-bullhorn mr-1"></i> Update
+            </span>
+            <div class="overflow-hidden w-full">
+                <marquee behavior="scroll" direction="left" scrollamount="4" class="text-xs sm:text-sm block">
+                    Supabase Cloud Database Active! New games automatically sync with the store.
+                </marquee>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+<!-- Main Container with Proper Padding & Spacing -->
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 overflow-hidden">
+
+    <!-- STORE SECTION -->
+    <div id="tab-store" class="space-y-6">
+
+        <!-- Featured Banner -->
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-900 via-violet-900 to-purple-900 text-white p-6 sm:p-10 shadow-xl">
+            <div class="absolute -right-12 -bottom-12 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 max-w-2xl space-y-3">
+                <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 backdrop-blur-md border border-white/20 text-indigo-200">
+                    <i class="fa-solid fa-bolt text-amber-400"></i>
+                    <span>Featured Game</span>
+                </span>
+
+                <h1 id="featuredTitle" class="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+                    MiniStore Games
+                </h1>
+
+                <p id="featuredDescription" class="text-slate-300 text-xs sm:text-sm">
+                    Play your favorite games instantly.
+                </p>
+
+                <div class="flex flex-wrap gap-3 pt-2">
+                    <button
+                        onclick="openFeaturedGame()"
+                        class="px-5 py-2.5 bg-white text-indigo-900 rounded-xl font-bold text-xs sm:text-sm hover:bg-indigo-50 transition shadow-lg flex items-center space-x-2">
+                        <i class="fa-solid fa-play text-indigo-600"></i>
+                        <span>Play Now</span>
+                    </button>
+
+                    <button
+                        onclick="switchTab('upload')"
+                        class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl font-semibold text-xs sm:text-sm transition backdrop-blur-md">
+                        Upload Your Game
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories Filter -->
+        <div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none" id="categoryFilters">
+            <button onclick="filterCategory('All')" class="category-btn px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition bg-indigo-600 text-white shadow-sm whitespace-nowrap shrink-0">
+                All
+            </button>
+            <button onclick="filterCategory('Action')" class="category-btn px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0">
+                Action
+            </button>
+            <button onclick="filterCategory('Puzzle')" class="category-btn px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0">
+                Puzzle
+            </button>
+            <button onclick="filterCategory('Arcade')" class="category-btn px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0">
+                Arcade
+            </button>
+            <button onclick="filterCategory('Utility')" class="category-btn px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0">
+                Utility
+            </button>
+        </div>
+
+        <!-- Section Header -->
+        <div class="flex justify-between items-center pt-2">
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
+                <i class="fa-solid fa-fire text-amber-500 text-sm"></i>
+                <span id="sectionTitle">All Games & Apps</span>
+                <span id="appCountBadge" class="text-xs bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-full text-slate-600 dark:text-slate-400">0</span>
+            </h2>
+            <div class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                <span id="installedCountText">0 games available in total</span>
+            </div>
+        </div>
+
+        <!-- Apps Grid -->
+        <div id="appsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex flex-col items-center justify-center py-16 text-center">
+            <div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-400 text-2xl mb-3">
+                <i class="fa-solid fa-box-open"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-700 dark:text-slate-300">No games found</h3>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-xs mt-1">The store is empty or no games match your search.</p>
+            <button onclick="switchTab('upload')" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs sm:text-sm font-medium shadow hover:bg-indigo-700 transition">
+                Upload Game
+            </button>
+        </div>
+    </div>
+
+    <!-- UPLOAD SECTION -->
+    <div id="tab-upload" class="hidden max-w-2xl mx-auto space-y-6">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+            <div class="flex items-center space-x-4 mb-6 pb-5 border-b border-slate-100 dark:border-slate-800">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-xl shrink-0">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">Upload New Game / App</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Fill in your app details and publish it to the store.</p>
+                </div>
+            </div>
+
+            <form id="uploadForm" onsubmit="handleUploadSubmit(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Game / App Name *</label>
+                        <input type="text" id="appName" required maxlength="100" placeholder="e.g. Space Adventure 3D" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Category *</label>
+                        <select id="appCategory" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <option value="Action">Action</option>
+                            <option value="Puzzle">Puzzle</option>
+                            <option value="Arcade">Arcade</option>
+                            <option value="Utility">Utility</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Developer / Creator *</label>
+                        <input type="text" id="appDeveloper" required maxlength="100" placeholder="e.g. Rajesh Studio" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Version</label>
+                        <input type="text" id="appVersion" value="1.0.0" maxlength="30" placeholder="1.0.0" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">App Icon Image URL *</label>
+                    <div class="flex space-x-3 items-center">
+                        <input type="url" id="appIcon" required placeholder="https://example.com/icon.jpg" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" oninput="previewThumbnail(this.value)">
+                        <div id="iconPreview" class="w-11 h-11 rounded-xl bg-slate-200 dark:bg-slate-700/80 flex items-center justify-center overflow-hidden shrink-0 border border-slate-300 dark:border-slate-600">
+                            <i class="fa-solid fa-image text-slate-400 text-sm"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Game URL *</label>
+                    <input type="url" id="appGameUrl" required placeholder="https://example.com/game" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <p class="text-[11px] text-slate-500 mt-1">This URL will open when the 'Play' button is clicked.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Short Description *</label>
+                    <input type="text" id="appShortDesc" required maxlength="120" placeholder="Briefly describe the game in one line..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Description</label>
+                    <textarea id="appFullDesc" rows="3" maxlength="5000" placeholder="Write details about the game..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                </div>
+
+                <div class="pt-4 flex items-center justify-end space-x-3">
+                    <button type="button" onclick="switchTab('store')" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submitUploadBtn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-md transition flex items-center space-x-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Publish</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+
+<!-- APP MODAL -->
+<div id="appModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="modalContentBox" class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7">
+    </div>
+</div>
+
+
+<!-- CUSTOM MODAL -->
+<div id="customModal" class="fixed inset-0 z-[60] hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-xs w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-center space-y-3">
+        <div id="modalIcon" class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400 flex items-center justify-center mx-auto text-lg">
+            <i class="fa-solid fa-circle-info"></i>
+        </div>
+        <h3 id="modalTitle" class="text-base font-bold text-slate-900 dark:text-slate-100">Notice</h3>
+        <p id="modalMessage" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300"></p>
+        <div id="modalButtons" class="flex space-x-2 pt-2"></div>
+    </div>
+</div>
+
+
 <script>
-atOptions = {
-'key' : '2d64ab87de77d08d8a4b7e73d658f5de',
-'format' : 'iframe',
-'height' : 50,
-'width' : 320,
-'params' : {}
-};
+/* =========================================================
+   SUPABASE & CONFIG
+   ========================================================= */
+const SUPABASE_URL = 'https://itrmmbfqsuiwlazwhxvx.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_mQro-DrLM9uggYbobNDBEw_wH_T5HZS';
+
+let supabaseClient = null;
+let apps = [];
+let currentTab = 'store';
+let currentCategory = 'All';
+let searchQuery = '';
+let featuredApp = null;
+let modalCallback = null;
+const STORAGE_KEY = 'ministore_apps_v7';
+
+function initializeSupabase() {
+    if (!SUPABASE_URL || SUPABASE_URL.includes('YOUR_SUPABASE') || !window.supabase) return false;
+    try {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        return true;
+    } catch (error) {
+        supabaseClient = null;
+        return false;
+    }
+}
+
+const defaultApps = [
+    {
+        id: 'demo-app-1',
+        name: 'Neon Rider 3D',
+        category: 'Action',
+        developer: 'CyberStudios',
+        version: '1.2.4',
+        icon: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&auto=format&fit=crop&q=80',
+        game_url: '',
+        shortDesc: 'Fast-paced cyberpunk racing game.',
+        fullDesc: 'Neon Rider 3D is a futuristic racing game.',
+        downloads: 0,
+        rating: 4.8
+    }
+];
+
+function escapeHTML(value) {
+    if (value === null || value === undefined) return '';
+    return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function saveAppsToStorage() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(apps)); } catch (error) {}
+}
+
+function loadAppsFromStorage() {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (!stored) { apps = [...defaultApps]; saveAppsToStorage(); return; }
+        const parsed = JSON.parse(stored);
+        apps = Array.isArray(parsed) ? parsed : [...defaultApps];
+    } catch (error) {
+        apps = [...defaultApps];
+    }
+}
+
+async function loadGames() {
+    showLoadingState();
+    if (!supabaseClient) {
+        loadAppsFromStorage();
+        featuredApp = apps.length ? apps[0] : null;
+        renderFeatured(); renderApps(); updateStats();
+        return;
+    }
+    try {
+        const { data, error } = await supabaseClient.from('apps').select('*').order('created_at', { ascending: false });
+        if (error) {
+            loadAppsFromStorage();
+        } else {
+            apps = Array.isArray(data) ? data : [];
+            saveAppsToStorage();
+        }
+    } catch (error) {
+        loadAppsFromStorage();
+    }
+    featuredApp = apps.length ? apps[0] : null;
+    renderFeatured(); renderApps(); updateStats();
+}
+
+function showLoadingState() {
+    const grid = document.getElementById('appsGrid');
+    if (!grid) return;
+    grid.innerHTML = `
+        <div class="col-span-full flex flex-col items-center justify-center py-16 text-slate-500">
+            <i class="fa-solid fa-spinner fa-spin text-2xl text-indigo-600 mb-3"></i>
+            <p class="text-xs sm:text-sm">Loading games...</p>
+        </div>
+    `;
+}
+
+async function handleUploadSubmit(event) {
+    event.preventDefault();
+    const submitButton = document.getElementById('submitUploadBtn');
+    const name = document.getElementById('appName').value.trim();
+    const category = document.getElementById('appCategory').value;
+    const developer = document.getElementById('appDeveloper').value.trim();
+    const version = document.getElementById('appVersion').value.trim() || '1.0.0';
+    const icon = document.getElementById('appIcon').value.trim();
+    const gameUrl = document.getElementById('appGameUrl').value.trim();
+    const shortDesc = document.getElementById('appShortDesc').value.trim();
+    const fullDesc = document.getElementById('appFullDesc').value.trim() || shortDesc;
+
+    if (!name || !category || !developer || !icon || !gameUrl || !shortDesc) {
+        showCustomModal('Incomplete Information', 'Please fill in all required fields.');
+        return;
+    }
+
+    const newApp = { name, category, developer, version, icon, game_url: gameUrl, short_desc: shortDesc, full_desc: fullDesc, downloads: 0, rating: 0 };
+
+    submitButton.disabled = true;
+    submitButton.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Publishing...</span>`;
+
+    try {
+        if (!supabaseClient) {
+            showCustomModal('Error', 'Supabase is not connected.');
+            return;
+        }
+        const { data, error } = await supabaseClient.from('apps').insert([newApp]).select().single();
+        if (error) {
+            showCustomModal('Upload Failed', error.message || 'Game could not be saved.');
+            return;
+        }
+        apps.unshift(data);
+        saveAppsToStorage();
+        featuredApp = apps[0] || null;
+        renderFeatured(); renderApps(); updateStats();
+        document.getElementById('uploadForm').reset();
+        document.getElementById('iconPreview').innerHTML = '<i class="fa-solid fa-image text-slate-400 text-sm"></i>';
+        switchTab('store');
+        showCustomModal('Success', 'Your game has been published successfully.');
+    } catch (error) {
+        showCustomModal('Upload Error', 'An unexpected error occurred.');
+    } finally {
+        submitButton.disabled = false;
+        submitButton.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i><span>Publish</span>`;
+    }
+}
+
+async function deleteApp(appId) {
+    const app = apps.find(item => String(item.id) === String(appId));
+    if (!app) return;
+    showConfirmModal('Delete Confirmation', `Are you sure you want to delete "${app.name}"?`, async () => {
+        if (!supabaseClient) return;
+        try {
+            const { error } = await supabaseClient.from('apps').delete().eq('id', appId);
+            if (error) return;
+            apps = apps.filter(item => String(item.id) !== String(appId));
+            saveAppsToStorage();
+            featuredApp = apps[0] || null;
+            renderFeatured(); renderApps(); updateStats(); closeAppModal();
+            showCustomModal('Deleted', 'Game successfully deleted.');
+        } catch (error) {}
+    });
+}
+
+function renderFeatured() {
+    const title = document.getElementById('featuredTitle');
+    const description = document.getElementById('featuredDescription');
+    if (!title || !description) return;
+    if (!featuredApp) {
+        title.innerText = 'MiniStore Games';
+        description.innerText = 'No games available right now.';
+        return;
+    }
+    title.innerText = featuredApp.name || 'MiniStore Games';
+    description.innerText = featuredApp.short_desc || featuredApp.shortDesc || 'Play your favorite games instantly.';
+}
+
+function renderApps() {
+    const grid = document.getElementById('appsGrid');
+    const emptyState = document.getElementById('emptyState');
+    const sectionTitle = document.getElementById('sectionTitle');
+    const appCountBadge = document.getElementById('appCountBadge');
+    if (!grid) return;
+
+    const query = searchQuery.trim().toLowerCase();
+    const filtered = apps.filter(app => {
+        const name = String(app.name || '');
+        const developer = String(app.developer || '');
+        const category = String(app.category || '');
+        const matchesCategory = currentCategory === 'All' || category === currentCategory;
+        const matchesSearch = !query || name.toLowerCase().includes(query) || developer.toLowerCase().includes(query);
+        return matchesCategory && matchesSearch;
+    });
+
+    appCountBadge.innerText = filtered.length;
+    sectionTitle.innerText = currentCategory === 'All' ? 'All Games & Apps' : `${currentCategory} Games`;
+
+    if (filtered.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+    }
+    emptyState.classList.add('hidden');
+
+    grid.innerHTML = filtered.map(app => {
+        const id = escapeHTML(app.id);
+        const name = escapeHTML(app.name);
+        const category = escapeHTML(app.category);
+        const developer = escapeHTML(app.developer);
+        const icon = escapeHTML(app.icon);
+        const shortDesc = escapeHTML(app.short_desc || app.shortDesc || '');
+        const rating = Number(app.rating || 0).toFixed(1);
+
+        return `
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 rounded-2xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between group">
+                <div>
+                    <div class="flex items-start justify-between mb-3">
+                        <img src="${icon}" alt="${name}" onerror="this.src='https://placehold.co/100x100/6366f1/ffffff?text=APP'" class="w-14 h-14 rounded-xl object-cover shadow-sm group-hover:scale-105 transition duration-300">
+                        <span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400">
+                            ${category}
+                        </span>
+                    </div>
+                    <h3 onclick="openAppModal('${id}')" class="font-bold text-base text-slate-900 dark:text-slate-100 cursor-pointer hover:text-indigo-600 transition line-clamp-1">
+                        ${name}
+                    </h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-1.5">By ${developer}</p>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 mb-3 h-8">
+                        ${shortDesc}
+                    </p>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <span class="flex items-center space-x-1">
+                            <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                            <span class="font-semibold text-slate-700 dark:text-slate-300 text-xs">${rating}</span>
+                        </span>
+                        <button onclick="deleteApp('${id}')" class="text-rose-500 hover:text-rose-700 p-1 transition" title="Delete">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="openAppModal('${id}')" class="flex-1 py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition">
+                            Details
+                        </button>
+                        <button onclick="launchGame('${id}')" class="flex-1 py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-xs transition shadow-sm flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-play text-[10px]"></i>
+                            <span>Play</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function filterCategory(category) {
+    currentCategory = category;
+    document.querySelectorAll('.category-btn').forEach(button => {
+        const text = button.innerText.trim();
+        const active = (category === 'All' && text === 'All') || text === category;
+        if (active) {
+            button.className = 'category-btn px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition bg-indigo-600 text-white shadow-sm whitespace-nowrap shrink-0';
+        } else {
+            button.className = 'category-btn px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0';
+        }
+    });
+    renderApps();
+}
+
+function handleSearch(value) {
+    searchQuery = value || '';
+    const mobile = document.getElementById('mobileSearchInput');
+    const desktop = document.getElementById('searchInput');
+    if (mobile && mobile.value !== searchQuery) mobile.value = searchQuery;
+    if (desktop && desktop.value !== searchQuery) desktop.value = searchQuery;
+    renderApps();
+}
+
+function openAppModal(appId) {
+    const app = apps.find(item => String(item.id) === String(appId));
+    if (!app) return;
+    const modalBox = document.getElementById('modalContentBox');
+    const icon = escapeHTML(app.icon || '');
+    const name = escapeHTML(app.name || '');
+    const category = escapeHTML(app.category || '');
+    const developer = escapeHTML(app.developer || '');
+    const version = escapeHTML(app.version || '1.0.0');
+    const description = escapeHTML(app.full_desc || app.fullDesc || app.short_desc || app.shortDesc || '');
+    const id = escapeHTML(app.id);
+
+    modalBox.innerHTML = `
+        <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center space-x-3.5">
+                <img src="${icon}" onerror="this.src='https://placehold.co/100x100/6366f1/ffffff?text=APP'" class="w-16 h-16 rounded-2xl object-cover shadow-md">
+                <div>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
+                        ${category}
+                    </span>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1">${name}</h2>
+                    <p class="text-[11px] text-slate-500">Developer: <span class="font-medium text-slate-700 dark:text-slate-300">${developer}</span> • Version ${version}</p>
+                </div>
+            </div>
+            <button onclick="closeAppModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition">
+                <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+        </div>
+        <div class="space-y-2 mb-6">
+            <h4 class="font-bold text-xs text-slate-900 dark:text-slate-100">About the Game</h4>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">${description}</p>
+        </div>
+        <div class="flex items-center space-x-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <button onclick="launchGame('${id}')" class="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center space-x-1.5">
+                <i class="fa-solid fa-play text-xs"></i>
+                <span>Play Game</span>
+            </button>
+            <button onclick="deleteApp('${id}')" class="py-2.5 px-4 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 dark:text-rose-400 font-semibold rounded-xl text-xs sm:text-sm transition flex items-center space-x-1">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+                <span>Delete</span>
+            </button>
+        </div>
+    `;
+    document.getElementById('appModal').classList.remove('hidden');
+}
+
+function closeAppModal() { document.getElementById('appModal').classList.add('hidden'); }
+
+async function launchGame(appId) {
+    const app = apps.find(item => String(item.id) === String(appId));
+    if (!app) return;
+    const gameUrl = app.game_url || app.gameUrl || '';
+    if (!gameUrl) {
+        showCustomModal('Missing Game URL', `No game URL configured for "${app.name}".`);
+        return;
+    }
+    if (supabaseClient) {
+        try {
+            await supabaseClient.from('apps').update({ downloads: Number(app.downloads || 0) + 1 }).eq('id', app.id);
+        } catch (error) {}
+    }
+    closeAppModal();
+    window.open(gameUrl, '_blank', 'noopener,noreferrer');
+}
+
+function openFeaturedGame() {
+    if (featuredApp) launchGame(featuredApp.id);
+    else showCustomModal('No Game', 'No games are currently available in the store.');
+}
+
+function previewThumbnail(url) {
+    const previewBox = document.getElementById('iconPreview');
+    if (url && /^https?:\/\//i.test(url)) {
+        previewBox.innerHTML = `<img src="${escapeHTML(url)}" onerror="this.src='https://placehold.co/100x100/6366f1/ffffff?text=ERROR'" class="w-full h-full object-cover">`;
+    } else {
+        previewBox.innerHTML = '<i class="fa-solid fa-image text-slate-400 text-sm"></i>';
+    }
+}
+
+function updateStats() {
+    const text = document.getElementById('installedCountText');
+    if (text) text.innerText = `${apps.length} games available in total`;
+}
+
+function switchTab(tabName) {
+    currentTab = tabName;
+    const store = document.getElementById('tab-store');
+    const upload = document.getElementById('tab-upload');
+    const storeButton = document.getElementById('btn-store');
+    const uploadButton = document.getElementById('btn-upload');
+    const searchContainer = document.getElementById('nav-search-container');
+
+    if (tabName === 'store') {
+        store.classList.remove('hidden');
+        upload.classList.add('hidden');
+        searchContainer.classList.remove('hidden');
+        storeButton.className = 'px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition flex items-center space-x-1.5 bg-indigo-600 text-white shadow-sm';
+        uploadButton.className = 'px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700';
+    } else {
+        store.classList.add('hidden');
+        upload.classList.remove('hidden');
+        searchContainer.classList.add('hidden');
+        uploadButton.className = 'px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition flex items-center space-x-1.5 bg-indigo-600 text-white shadow-sm';
+        storeButton.className = 'px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700';
+    }
+}
+
+function toggleTheme() {
+    const html = document.documentElement;
+    const icon = document.getElementById('theme-icon');
+    if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        icon.className = 'fa-solid fa-moon text-sm';
+        localStorage.setItem('ministore_theme', 'light');
+    } else {
+        html.classList.add('dark');
+        icon.className = 'fa-solid fa-sun text-sm';
+        localStorage.setItem('ministore_theme', 'dark');
+    }
+}
+
+function showCustomModal(title, message) {
+    document.getElementById('modalTitle').innerText = title;
+    document.getElementById('modalMessage').innerText = message;
+    document.getElementById('modalButtons').innerHTML = `
+        <button onclick="closeCustomModal()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-xs sm:text-sm transition">
+            OK
+        </button>
+    `;
+    document.getElementById('customModal').classList.remove('hidden');
+}
+
+function showConfirmModal(title, message, callback) {
+    modalCallback = callback;
+    document.getElementById('modalTitle').innerText = title;
+    document.getElementById('modalMessage').innerText = message;
+    document.getElementById('modalButtons').innerHTML = `
+        <button onclick="closeCustomModal()" class="flex-1 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs transition">Cancel</button>
+        <button onclick="executeConfirm()" class="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl text-xs transition">Yes, Delete</button>
+    `;
+    document.getElementById('customModal').classList.remove('hidden');
+}
+
+function closeCustomModal() {
+    document.getElementById('customModal').classList.add('hidden');
+    modalCallback = null;
+}
+
+async function executeConfirm() {
+    const callback = modalCallback;
+    document.getElementById('customModal').classList.add('hidden');
+    modalCallback = null;
+    if (typeof callback === 'function') await callback();
+}
+
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('ministore_theme');
+    const shouldUseDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (shouldUseDark) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('theme-icon').className = 'fa-solid fa-sun text-sm';
+    } else {
+        document.documentElement.classList.remove('dark');
+        document.getElementById('theme-icon').className = 'fa-solid fa-moon text-sm';
+    }
+}
+
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { closeAppModal(); closeCustomModal(); }
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+    initializeTheme();
+    initializeSupabase();
+    await loadGames();
+});
 </script>
-<script src="https://www.highrevenueformat.com/2d64ab87de77d08d8a4b7e73d658f5de/invoke.js"></script>
-</div>
 
-<div id="game-header">
-<span id="levelText">Lvl: 1</span>
-<span id="movesText">Moves: 30</span>
-<span id="scoreText">Score: 0</span>
-<span id="targetText">Target: 200</span>
-</div>
-
-<div style="position: relative; width: 100%;">
-<div id="mainOverlay" class="overlay">
-<h1>FREE SWAP CANDY GAME</h1>
-<p>Swipe any candy in any direction to freely swap them instantly!</p>
-<button class="btn" id="startBtn">START GAME</button>
-</div>
-
-<div id="board" class="board-container"></div>
-</div>
-
-<!-- NATIVE BANNER AD -->
-<div class="ad-space-native">
-<script async="async" data-cfasync="false" src="https://pl31539143.profitableratecpmnetwork.com/55746ba7485caf30b218505cb537bed7/invoke.js"></script>
-<div id="container-55746ba7485caf30b218505cb537bed7"></div>
-</div>
-
-</div>
-
-<script>
-const canvas = document.getElementById("particleCanvas");
-const ctx = canvas.getContext("2d");
-let particles = [];
-
-function resizeCanvas() {
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-}
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
-
-function createSparkles(x, y, count) {
-if (particles.length > 40) particles.splice(0, count);
-const colors = ['#ffffff', '#ffeb3b', '#ff416c', '#00ffff', '#4caf50'];
-for (let i = 0; i < count; i++) {
-const angle = Math.random() * Math.PI * 2;
-const speed = Math.random() * 3 + 1;
-particles.push({
-x: x, y: y,
-vx: Math.cos(angle) * speed,
-vy: Math.sin(angle) * speed,
-size: Math.random() * 3 + 2,
-color: colors[Math.floor(Math.random() * colors.length)],
-alpha: 1,
-decay: 0.05
-});
-}
-}
-
-function updateParticles() {
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-for (let i = particles.length - 1; i >= 0; i--) {
-let p = particles[i];
-p.x += p.vx;
-p.y += p.vy;
-p.alpha -= p.decay;
-
-if (p.alpha <= 0) {
-particles.splice(i, 1);
-continue;
-}
-
-ctx.globalAlpha = p.alpha;
-ctx.fillStyle = p.color;
-ctx.beginPath();
-ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-ctx.fill();
-}
-requestAnimationFrame(updateParticles);
-}
-updateParticles();
-
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSound(type) {
-try {
-if (audioCtx.state === 'suspended') audioCtx.resume();
-const osc = audioCtx.createOscillator();
-const gain = audioCtx.createGain();
-osc.connect(gain);
-gain.connect(audioCtx.destination);
-let now = audioCtx.currentTime;
-
-if (type === 'swap') {
-osc.frequency.setValueAtTime(350, now);
-osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
-gain.gain.setValueAtTime(0.1, now);
-gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
-osc.start(now); osc.stop(now + 0.08);
-} else if (type === 'match') {
-osc.frequency.setValueAtTime(500, now);
-osc.frequency.exponentialRampToValueAtTime(900, now + 0.15);
-gain.gain.setValueAtTime(0.15, now);
-gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
-osc.start(now); osc.stop(now + 0.15);
-} else if (type === 'win') {
-osc.frequency.setValueAtTime(600, now);
-osc.frequency.exponentialRampToValueAtTime(1200, now + 0.3);
-gain.gain.setValueAtTime(0.2, now);
-gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-osc.start(now); osc.stop(now + 0.3);
-}
-} catch(e) {}
-}
-
-const boardSize = 8;
-const candiesList = ['🍬', '🍫', '🍭', '⭐', '🍩'];
-let board = [];
-let score = 0, targetScore = 200, moves = 30, level = 1;
-let isProcessing = false;
-
-let startX = 0, startY = 0;
-let startR = -1, startC = -1;
-
-const boardElement = document.getElementById("board");
-const levelText = document.getElementById("levelText");
-const movesText = document.getElementById("movesText");
-const scoreText = document.getElementById("scoreText");
-const targetText = document.getElementById("targetText");
-const mainOverlay = document.getElementById("mainOverlay");
-const startBtn = document.getElementById("startBtn");
-
-startBtn.addEventListener("click", function() {
-mainOverlay.classList.add("hidden");
-initGame();
-});
-
-function initGame() {
-score = 0;
-moves = 30;
-targetScore = 200 + (level - 1) * 150;
-updateHUD();
-createBoard();
-}
-
-function createBoard() {
-board = [];
-for (let r = 0; r < boardSize; r++) {
-let row = [];
-for (let c = 0; c < boardSize; c++) {
-row.push({ type: candiesList[Math.floor(Math.random() * candiesList.length)] });
-}
-board.push(row);
-}
-renderBoard();
-}
-
-function renderBoard() {
-boardElement.innerHTML = "";
-for (let r = 0; r < boardSize; r++) {
-for (let c = 0; c < boardSize; c++) {
-let tile = document.createElement("div");
-tile.className = "candy";
-let item = board[r][c];
-if (item) {
-tile.innerText = item.type;
-}
-tile.dataset.row = r;
-tile.dataset.col = c;
-boardElement.appendChild(tile);
-}
-}
-}
-
-boardElement.addEventListener("touchstart", function(e) {
-if (isProcessing || moves <= 0) return;
-const target = e.target.closest(".candy");
-if (!target) return;
-
-startR = parseInt(target.dataset.row);
-startC = parseInt(target.dataset.col);
-startX = e.touches[0].clientX;
-startY = e.touches[0].clientY;
-
-highlightSelected(startR, startC);
-}, {passive: true});
-
-boardElement.addEventListener("touchend", function(e) {
-if (isProcessing || startR === -1 || startC === -1) return;
-const touch = e.changedTouches[0];
-const dx = touch.clientX - startX;
-const dy = touch.clientY - startY;
-handleSwipeDirection(dx, dy);
-}, {passive: true});
-
-boardElement.addEventListener("mousedown", function(e) {
-if (isProcessing || moves <= 0) return;
-const target = e.target.closest(".candy");
-if (!target) return;
-
-startR = parseInt(target.dataset.row);
-startC = parseInt(target.dataset.col);
-startX = e.clientX;
-startY = e.clientY;
-
-highlightSelected(startR, startC);
-
-const onMouseUp = function(muEvent) {
-window.removeEventListener("mouseup", onMouseUp);
-if (isProcessing || startR === -1 || startC === -1) return;
-const dx = muEvent.clientX - startX;
-const dy = muEvent.clientY - startY;
-handleSwipeDirection(dx, dy);
-};
-window.addEventListener("mouseup", onMouseUp);
-});
-
-function highlightSelected(r, c) {
-document.querySelectorAll('.candy').forEach(function(el) {
-el.classList.remove('selected');
-});
-let idx = r * boardSize + c;
-if (boardElement.children[idx]) {
-boardElement.children[idx].classList.add('selected');
-}
-}
-
-function handleSwipeDirection(dx, dy) {
-const absDx = Math.abs(dx);
-const absDy = Math.abs(dy);
-let targetR = startR;
-let targetC = startC;
-
-if (absDx > 8 || absDy > 8) {
-if (absDx > absDy) {
-targetC += (dx > 0) ? 1 : -1;
-} else {
-targetR += (dy > 0) ? 1 : -1;
-}
-
-if (targetR >= 0 && targetR < boardSize && targetC >= 0 && targetC < boardSize) {
-freeSwap(startR, startC, targetR, targetC);
-}
-}
-
-startR = -1;
-startC = -1;
-document.querySelectorAll('.candy').forEach(function(el) {
-el.classList.remove('selected');
-});
-}
-
-function freeSwap(r1, c1, r2, c2) {
-let temp = board[r1][c1];
-board[r1][c1] = board[r2][c2];
-board[r2][c2] = temp;
-playSound('swap');
-
-moves--;
-updateHUD();
-renderBoard();
-
-checkAndClearMatches();
-
-if (score >= targetScore) {
-playSound('win');
-level++;
-mainOverlay.classList.remove("hidden");
-mainOverlay.querySelector("h1").innerText = "LEVEL " + (level - 1) + " CLEARED! 🎉";
-mainOverlay.querySelector("p").innerText = "Great! Moving to Level " + level + " (Target: " + (200 + (level - 1) * 150) + ")";
-startBtn.innerText = "START LEVEL " + level;
-return;
-}
-
-if (moves <= 0 && score < targetScore) {
-mainOverlay.classList.remove("hidden");
-mainOverlay.querySelector("h1").innerText = "GAME OVER 😢";
-mainOverlay.querySelector("p").innerText = "Out of moves! Final Score: " + score;
-startBtn.innerText = "TRY AGAIN";
-level = 1;
-}
-}
-
-function checkAndClearMatches() {
-let matched = [];
-for (let r = 0; r < boardSize; r++) {
-for (let c = 0; c < boardSize; c++) {
-let current = board[r][c];
-if (!current) continue;
-if (c < boardSize - 1 && board[r][c + 1] && board[r][c + 1].type === current.type) {
-matched.push({r: r, c: c}, {r: r, c: c + 1});
-}
-if (r < boardSize - 1 && board[r + 1][c] && board[r + 1][c].type === current.type) {
-matched.push({r: r, c: c}, {r: r + 1, c: c});
-}
-}
-}
-
-let unique = [];
-let map = {};
-matched.forEach(function(m) {
-let key = m.r + "," + m.c;
-if (!map[key]) {
-map[key] = true;
-unique.push(m);
-}
-});
-
-if (unique.length > 0) {
-playSound('match');
-let sample = unique[0];
-let idx = sample.r * boardSize + sample.c;
-if (boardElement.children[idx]) {
-let rect = boardElement.children[idx].getBoundingClientRect();
-createSparkles(rect.left + rect.width / 2, rect.top + rect.height / 2, 10);
-}
-
-score += unique.length * 20;
-updateHUD();
-
-unique.forEach(function(m) {
-if (board[m.r][m.c]) board[m.r][m.c] = null;
-});
-renderBoard();
-
-setTimeout(function() {
-fallCandies();
-renderBoard();
-}, 150);
-}
-}
-
-function fallCandies() {
-let boardSizeVal = boardSize;
-for (let c = 0; c < boardSizeVal; c++) {
-for (let r = boardSizeVal - 1; r >= 0; r--) {
-if (board[r][c] === null) {
-let above = -1;
-for (let ar = r - 1; ar >= 0; ar--) {
-if (board[ar][c] !== null) { above = ar; break; }
-}
-if (above !== -1) {
-board[r][c] = board[above][c];
-board[above][c] = null;
-} else {
-board[r][c] = { type: candiesList[Math.floor(Math.random() * candiesList.length)] };
-}
-}
-}
-}
-}
-
-function updateHUD() {
-levelText.innerText = "Lvl: " + level;
-movesText.innerText = "Moves: " + moves;
-scoreText.innerText = "Score: " + score;
-targetText.innerText = "Target: " + targetScore;
-}
-</script>
 </body>
 </html>
