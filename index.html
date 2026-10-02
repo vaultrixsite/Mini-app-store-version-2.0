@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Smooth Free Swap Candy Game - Monetized</title>
+<style>
+* {
+box-sizing: border-box;
+user-select: none;
+-webkit-user-select: none;
+}
+html, body {
+margin: 0;
+padding: 0;
+width: 100vw;
+height: 100vh;
+background: linear-gradient(135deg, #1f1c2c, #928dab);
+color: #fff;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+overflow: hidden;
+touch-action: none;
+}
+.game-wrapper {
+display: flex;
+flex-direction: column;
+align-items: center;
+width: 100%;
+max-width: 380px;
+padding: 10px;
+}
+#game-header {
+display: flex;
+justify-content: space-between;
+width: 100%;
+padding: 10px 12px;
+font-size: 0.85rem;
+font-weight: bold;
+background: rgba(0, 0, 0, 0.7);
+border-radius: 10px 10px 0 0;
+border: 2px solid rgba(255, 255, 255, 0.2);
+border-bottom: none;
+}
+.board-container {
+position: relative;
+width: 100%;
+aspect-ratio: 1 / 1;
+background: rgba(0, 0, 0, 0.8);
+border: 2px solid rgba(255, 255, 255, 0.2);
+border-radius: 0 0 10px 10px;
+display: grid;
+grid-template-columns: repeat(8, 1fr);
+grid-template-rows: repeat(8, 1fr);
+gap: 4px;
+padding: 6px;
+box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+#particleCanvas {
+position: fixed;
+top: 0;
+left: 0;
+width: 100vw;
+height: 100vh;
+pointer-events: none;
+z-index: 99;
+}
+.candy {
+background: rgba(255, 255, 255, 0.15);
+border-radius: 8px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 1.6rem;
+cursor: pointer;
+touch-action: none;
+transition: transform 0.1s, background 0.1s;
+}
+.candy.selected { transform: scale(1.15); background: rgba(255, 255, 255, 0.5); z-index: 10; box-shadow: 0 0 10px #fff; }
+
+.overlay {
+position: absolute;
+top: 0; left: 0; width: 100%; height: 100%;
+background: rgba(15, 12, 41, 0.95);
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+z-index: 200;
+text-align: center;
+padding: 20px;
+border-radius: 10px;
+}
+.overlay h1 { color: #ff007f; font-size: 1.5rem; margin-bottom: 10px; }
+.overlay p { font-size: 0.9rem; margin-bottom: 20px; color: #ddd; }
+.btn {
+background: linear-gradient(45deg, #ff416c, #ff4b2b);
+color: white;
+border: none;
+padding: 10px 25px;
+font-size: 1rem;
+font-weight: bold;
+border-radius: 20px;
+cursor: pointer;
+}
+.hidden { display: none !important; }
+
+.ad-space-top {
+width: 100%;
+max-width: 380px;
+min-height: 50px;
+background: rgba(255, 255, 255, 0.05);
+border: 1px dashed rgba(255, 255, 255, 0.2);
+display: flex;
+align-items: center;
+justify-content: center;
+margin-bottom: 8px;
+border-radius: 8px;
+font-size: 0.75rem;
+color: #aaa;
+}
+.ad-space-native {
+width: 100%;
+max-width: 380px;
+min-height: 80px;
+background: rgba(255, 255, 255, 0.05);
+border: 1px dashed rgba(255, 255, 255, 0.2);
+display: flex;
+align-items: center;
+justify-content: center;
+margin-top: 10px;
+border-radius: 8px;
+font-size: 0.75rem;
+color: #aaa;
+}
+</style>
+</head>
+<body>
+
+<!-- SOCIAL BAR AD -->
+<script src="https://pl31539155.profitableratecpmnetwork.com/5a/71/23/5a7123ffb8257c55f6710c10884def55.js"></script>
+<canvas id="particleCanvas"></canvas>
+
+<div class="game-wrapper">
+
+<!-- TOP BANNER AD -->
+<div class="ad-space-top">
+<script>
+atOptions = {
+'key' : '2d64ab87de77d08d8a4b7e73d658f5de',
+'format' : 'iframe',
+'height' : 50,
+'width' : 320,
+'params' : {}
+};
+</script>
+<script src="https://www.highrevenueformat.com/2d64ab87de77d08d8a4b7e73d658f5de/invoke.js"></script>
+</div>
+
+<div id="game-header">
+<span id="levelText">Lvl: 1</span>
+<span id="movesText">Moves: 30</span>
+<span id="scoreText">Score: 0</span>
+<span id="targetText">Target: 200</span>
+</div>
+
+<div style="position: relative; width: 100%;">
+<div id="mainOverlay" class="overlay">
+<h1>FREE SWAP CANDY GAME</h1>
+<p>Swipe any candy in any direction to freely swap them instantly!</p>
+<button class="btn" id="startBtn">START GAME</button>
+</div>
+
+<div id="board" class="board-container"></div>
+</div>
+
+<!-- NATIVE BANNER AD -->
+<div class="ad-space-native">
+<script async="async" data-cfasync="false" src="https://pl31539143.profitableratecpmnetwork.com/55746ba7485caf30b218505cb537bed7/invoke.js"></script>
+<div id="container-55746ba7485caf30b218505cb537bed7"></div>
+</div>
+
+</div>
+
+<script>
+const canvas = document.getElementById("particleCanvas");
+const ctx = canvas.getContext("2d");
+let particles = [];
+
+function resizeCanvas() {
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+function createSparkles(x, y, count) {
+if (particles.length > 40) particles.splice(0, count);
+const colors = ['#ffffff', '#ffeb3b', '#ff416c', '#00ffff', '#4caf50'];
+for (let i = 0; i < count; i++) {
+const angle = Math.random() * Math.PI * 2;
+const speed = Math.random() * 3 + 1;
+particles.push({
+x: x, y: y,
+vx: Math.cos(angle) * speed,
+vy: Math.sin(angle) * speed,
+size: Math.random() * 3 + 2,
+color: colors[Math.floor(Math.random() * colors.length)],
+alpha: 1,
+decay: 0.05
+});
+}
+}
+
+function updateParticles() {
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+for (let i = particles.length - 1; i >= 0; i--) {
+let p = particles[i];
+p.x += p.vx;
+p.y += p.vy;
+p.alpha -= p.decay;
+
+if (p.alpha <= 0) {
+particles.splice(i, 1);
+continue;
+}
+
+ctx.globalAlpha = p.alpha;
+ctx.fillStyle = p.color;
+ctx.beginPath();
+ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+ctx.fill();
+}
+requestAnimationFrame(updateParticles);
+}
+updateParticles();
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+try {
+if (audioCtx.state === 'suspended') audioCtx.resume();
+const osc = audioCtx.createOscillator();
+const gain = audioCtx.createGain();
+osc.connect(gain);
+gain.connect(audioCtx.destination);
+let now = audioCtx.currentTime;
+
+if (type === 'swap') {
+osc.frequency.setValueAtTime(350, now);
+osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+gain.gain.setValueAtTime(0.1, now);
+gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+osc.start(now); osc.stop(now + 0.08);
+} else if (type === 'match') {
+osc.frequency.setValueAtTime(500, now);
+osc.frequency.exponentialRampToValueAtTime(900, now + 0.15);
+gain.gain.setValueAtTime(0.15, now);
+gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+osc.start(now); osc.stop(now + 0.15);
+} else if (type === 'win') {
+osc.frequency.setValueAtTime(600, now);
+osc.frequency.exponentialRampToValueAtTime(1200, now + 0.3);
+gain.gain.setValueAtTime(0.2, now);
+gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+osc.start(now); osc.stop(now + 0.3);
+}
+} catch(e) {}
+}
+
+const boardSize = 8;
+const candiesList = ['🍬', '🍫', '🍭', '⭐', '🍩'];
+let board = [];
+let score = 0, targetScore = 200, moves = 30, level = 1;
+let isProcessing = false;
+
+let startX = 0, startY = 0;
+let startR = -1, startC = -1;
+
+const boardElement = document.getElementById("board");
+const levelText = document.getElementById("levelText");
+const movesText = document.getElementById("movesText");
+const scoreText = document.getElementById("scoreText");
+const targetText = document.getElementById("targetText");
+const mainOverlay = document.getElementById("mainOverlay");
+const startBtn = document.getElementById("startBtn");
+
+startBtn.addEventListener("click", function() {
+mainOverlay.classList.add("hidden");
+initGame();
+});
+
+function initGame() {
+score = 0;
+moves = 30;
+targetScore = 200 + (level - 1) * 150;
+updateHUD();
+createBoard();
+}
+
+function createBoard() {
+board = [];
+for (let r = 0; r < boardSize; r++) {
+let row = [];
+for (let c = 0; c < boardSize; c++) {
+row.push({ type: candiesList[Math.floor(Math.random() * candiesList.length)] });
+}
+board.push(row);
+}
+renderBoard();
+}
+
+function renderBoard() {
+boardElement.innerHTML = "";
+for (let r = 0; r < boardSize; r++) {
+for (let c = 0; c < boardSize; c++) {
+let tile = document.createElement("div");
+tile.className = "candy";
+let item = board[r][c];
+if (item) {
+tile.innerText = item.type;
+}
+tile.dataset.row = r;
+tile.dataset.col = c;
+boardElement.appendChild(tile);
+}
+}
+}
+
+boardElement.addEventListener("touchstart", function(e) {
+if (isProcessing || moves <= 0) return;
+const target = e.target.closest(".candy");
+if (!target) return;
+
+startR = parseInt(target.dataset.row);
+startC = parseInt(target.dataset.col);
+startX = e.touches[0].clientX;
+startY = e.touches[0].clientY;
+
+highlightSelected(startR, startC);
+}, {passive: true});
+
+boardElement.addEventListener("touchend", function(e) {
+if (isProcessing || startR === -1 || startC === -1) return;
+const touch = e.changedTouches[0];
+const dx = touch.clientX - startX;
+const dy = touch.clientY - startY;
+handleSwipeDirection(dx, dy);
+}, {passive: true});
+
+boardElement.addEventListener("mousedown", function(e) {
+if (isProcessing || moves <= 0) return;
+const target = e.target.closest(".candy");
+if (!target) return;
+
+startR = parseInt(target.dataset.row);
+startC = parseInt(target.dataset.col);
+startX = e.clientX;
+startY = e.clientY;
+
+highlightSelected(startR, startC);
+
+const onMouseUp = function(muEvent) {
+window.removeEventListener("mouseup", onMouseUp);
+if (isProcessing || startR === -1 || startC === -1) return;
+const dx = muEvent.clientX - startX;
+const dy = muEvent.clientY - startY;
+handleSwipeDirection(dx, dy);
+};
+window.addEventListener("mouseup", onMouseUp);
+});
+
+function highlightSelected(r, c) {
+document.querySelectorAll('.candy').forEach(function(el) {
+el.classList.remove('selected');
+});
+let idx = r * boardSize + c;
+if (boardElement.children[idx]) {
+boardElement.children[idx].classList.add('selected');
+}
+}
+
+function handleSwipeDirection(dx, dy) {
+const absDx = Math.abs(dx);
+const absDy = Math.abs(dy);
+let targetR = startR;
+let targetC = startC;
+
+if (absDx > 8 || absDy > 8) {
+if (absDx > absDy) {
+targetC += (dx > 0) ? 1 : -1;
+} else {
+targetR += (dy > 0) ? 1 : -1;
+}
+
+if (targetR >= 0 && targetR < boardSize && targetC >= 0 && targetC < boardSize) {
+freeSwap(startR, startC, targetR, targetC);
+}
+}
+
+startR = -1;
+startC = -1;
+document.querySelectorAll('.candy').forEach(function(el) {
+el.classList.remove('selected');
+});
+}
+
+function freeSwap(r1, c1, r2, c2) {
+let temp = board[r1][c1];
+board[r1][c1] = board[r2][c2];
+board[r2][c2] = temp;
+playSound('swap');
+
+moves--;
+updateHUD();
+renderBoard();
+
+checkAndClearMatches();
+
+if (score >= targetScore) {
+playSound('win');
+level++;
+mainOverlay.classList.remove("hidden");
+mainOverlay.querySelector("h1").innerText = "LEVEL " + (level - 1) + " CLEARED! 🎉";
+mainOverlay.querySelector("p").innerText = "Great! Moving to Level " + level + " (Target: " + (200 + (level - 1) * 150) + ")";
+startBtn.innerText = "START LEVEL " + level;
+return;
+}
+
+if (moves <= 0 && score < targetScore) {
+mainOverlay.classList.remove("hidden");
+mainOverlay.querySelector("h1").innerText = "GAME OVER 😢";
+mainOverlay.querySelector("p").innerText = "Out of moves! Final Score: " + score;
+startBtn.innerText = "TRY AGAIN";
+level = 1;
+}
+}
+
+function checkAndClearMatches() {
+let matched = [];
+for (let r = 0; r < boardSize; r++) {
+for (let c = 0; c < boardSize; c++) {
+let current = board[r][c];
+if (!current) continue;
+if (c < boardSize - 1 && board[r][c + 1] && board[r][c + 1].type === current.type) {
+matched.push({r: r, c: c}, {r: r, c: c + 1});
+}
+if (r < boardSize - 1 && board[r + 1][c] && board[r + 1][c].type === current.type) {
+matched.push({r: r, c: c}, {r: r + 1, c: c});
+}
+}
+}
+
+let unique = [];
+let map = {};
+matched.forEach(function(m) {
+let key = m.r + "," + m.c;
+if (!map[key]) {
+map[key] = true;
+unique.push(m);
+}
+});
+
+if (unique.length > 0) {
+playSound('match');
+let sample = unique[0];
+let idx = sample.r * boardSize + sample.c;
+if (boardElement.children[idx]) {
+let rect = boardElement.children[idx].getBoundingClientRect();
+createSparkles(rect.left + rect.width / 2, rect.top + rect.height / 2, 10);
+}
+
+score += unique.length * 20;
+updateHUD();
+
+unique.forEach(function(m) {
+if (board[m.r][m.c]) board[m.r][m.c] = null;
+});
+renderBoard();
+
+setTimeout(function() {
+fallCandies();
+renderBoard();
+}, 150);
+}
+}
+
+function fallCandies() {
+let boardSizeVal = boardSize;
+for (let c = 0; c < boardSizeVal; c++) {
+for (let r = boardSizeVal - 1; r >= 0; r--) {
+if (board[r][c] === null) {
+let above = -1;
+for (let ar = r - 1; ar >= 0; ar--) {
+if (board[ar][c] !== null) { above = ar; break; }
+}
+if (above !== -1) {
+board[r][c] = board[above][c];
+board[above][c] = null;
+} else {
+board[r][c] = { type: candiesList[Math.floor(Math.random() * candiesList.length)] };
+}
+}
+}
+}
+}
+
+function updateHUD() {
+levelText.innerText = "Lvl: " + level;
+movesText.innerText = "Moves: " + moves;
+scoreText.innerText = "Score: " + score;
+targetText.innerText = "Target: " + targetScore;
+}
+</script>
+</body>
+</html>
